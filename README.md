@@ -1,7 +1,14 @@
 # NetCDF Flag Wrapper (ncflag)
 
-So... you want to inspect CF compliant NetCDF flag variables?
+So... you want to inspect CF Compliant NetCDF flag variables?
 
+CF Compliant NetCDF Flag variables are integer flags associated with, or having:
+
+ - flag_values
+ - flag_meanings
+ - flag_masks (optionally)
+
+Read the [CF Conventions on flags](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) for more information.
 
 ## TL;DR
 
