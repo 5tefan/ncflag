@@ -52,13 +52,8 @@ dimension will be printed instead of a iso 8601 timestamp.
 
 Occasionally, by some poor misfortune, you may encounter multidimensional flag variables. These are currently not
 supported by the Command Line Interface (CLI), however, the FlagWrap class can still be used in code, or through an
-<<<<<<< HEAD
 interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple of indicies to get the 
 flags set in a multidimensional flag variable. Below is an example. 
-=======
-interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple to query the flags set in
-a multidimensional flag variable. Below is an example. 
->>>>>>> 2038d5172c83f0a1082745ceb3f3b1b6dbea3f8f
 
 ```python
 from ncflag import FlagWrap
