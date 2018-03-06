@@ -1,6 +1,6 @@
 # NetCDF Flag Wrapper (ncflag)
 
-So... you want to inspect CF compliant NetCDF flag Variables?
+So... you want to inspect a [CF compliant NetCDF flag](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) variable?
 
 
 ## TL;DR
@@ -45,8 +45,8 @@ dimension will be printed instead of a iso 8601 timestamp.
 
 Occasionally, by some poor misfortune, you may encounter multidimensional flag variables. These are currently not
 supported by the Command Line Interface (CLI), however, the FlagWrap class can still be used in code, or through an
-interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple to get the flags set in
-a multidimensional flag variable. Below is an example. 
+interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple of indicies to get the 
+flags set in a multidimensional flag variable. Below is an example. 
 
 ```python
 from ncflag import FlagWrap
@@ -59,19 +59,30 @@ with nc.Dataset("somenetcdf.nc") as nc_in:
     print(w.get_flags_set_at_index((0, 0)))  # --> ["good_quality_qf"]
 ```
 
+## API and Documentation
+
+To use the FlagWrap in your own code, see the example
+above for multidimensional flags.
+
+For documentation, please read `flag_wrapper.py`. It is one file
+and is documented with comprehensive docstrings. The functions are
+named descriptively. A following functions are available:
+
+    - init_zeros(cls, nc_var, shape)
+    - get_flag(self, flag_meaning)
+    - reduce(self, exclude_mask, axis=-1)
+    - get_flag_at_index(self, flag_meaning, i)
+    - get_flags_set_at_index(self, i, exit_on_good=False)
+    - find_flag(self, options)
+    - set_flag(self, flag_meaning, flags)
+    - set_flag_at_index(self, flag_meaning, i)
+    - get_value_for_meaning(self, flag_meaning)
+    - sync(self)
+
+
 ## Testing
 
 TODO!
-
-## Development
-
-Setting up a virtualenv is recommended for development.
-
-```
-virtualenv venv
-. venv/bin/activate
-pip install --editable .
-```
 
 ---------------------
 

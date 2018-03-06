@@ -6,7 +6,7 @@ class FlagWrap(object):
     """
     A convenience wrapper for flag bit vectors implemented with proper :flag_values, :flag_masks,
     and :flag_meanings arrays so that flags can be queried and set in code by their meanings instead
-    of using hardcoded masks and values.
+    of using (error prone) hardcoded masks and values.
     """
 
     def __init__(self, nc_var, flags=None):
@@ -47,7 +47,6 @@ class FlagWrap(object):
     def init_zeros(cls, nc_var, shape):
         """
         Initialize a flag to 0's of the correct datatype for nc_var.
-        
         :type nc_var: nc.Variable
         :param nc_var: A netcdf Variable object
         :type shape: int | tuple[int] | list[int]
@@ -61,26 +60,25 @@ class FlagWrap(object):
         Get an array of flags for a certain meaning. Returned array will have element True where 
         flag_meaning is set and otherwise False or 0.
         
-        :type flag_meaning: str
-        :param flag_meaning: flag meaning intended to be looked up
+        :type flag_meaning: str | list[str] | tuple[str]
+        :param flag_meaning: flag meaning(s) to be looked up
         :rtype: np.array
-        :return: array of booleans indicating where flag_meaning is set
+        :return: array of booleans where flag_meaning(s) is(are) set
         """
-        index = self._flag_meanings.index(flag_meaning)
-        return (self.flags & self._flag_masks[index]) == self._flag_values[index]
+        def get(meaning):
+            """ Get the meaning of an individual flag_meaning. """
+            index = self._flag_meanings.index(meaning)
+            return (self.flags & self._flag_masks[index]) == self._flag_values[index]
 
-    def get_flags(self, flag_meanings):
-        """
-        Return an array with True when any flag in the list of flag_meanings was set.
-        
-        :type flag_meanings: list[str]
-        :param flag_meanings: Flags to OR together
-        :return: 
-        """
-        any_set = np.zeros_like(self.flags, dtype=np.bool)
-        for flag_meaning in flag_meanings:
-            any_set |= self.get_flag(flag_meaning)
-        return any_set
+        if isinstance(flag_meaning, (list, tuple)):
+            # if receive a sequence, or them together.
+            any_set = np.zeros_like(self.flags, dtype=np.bool)
+            for each in flag_meaning:
+                any_set |= get(each)
+            return any_set
+        else:
+            # otherwise just get the one.
+            return get(flag_meaning)
 
     def reduce(self, exclude_mask, axis=-1):
         """
@@ -107,7 +105,7 @@ class FlagWrap(object):
         index = self._flag_meanings.index(flag_meaning)
         return (self.flags[i] & self._flag_masks[index]) == self._flag_values[index]
 
-    def get_flags_set_at_index(self, i):
+    def get_flags_set_at_index(self, i, exit_on_good=False):
         """
         Get a list of the flag_meanings set at a particular index.
         
@@ -117,6 +115,13 @@ class FlagWrap(object):
         :return: a list of flags_meanings set at index i
         """
         flags_set = []
+        # if exit_on_good, exit if a good_quality_qf type flag is found
+        # assumptions: good_quality_qf has the substring "good" and flag value can only be 0.
+        if exit_on_good and self.flags[i] == 0:
+            good_meaning = next((f for f in self._flag_meanings if "good" in f), None)
+            if good_meaning is not None:
+                return [good_meaning]
+        # otherwise, go into nominal search through all flags. If set, accumulate.
         for flag_meaning in self._flag_meanings:
             if self.get_flag_at_index(flag_meaning, i):
                 flags_set.append(flag_meaning)
@@ -126,7 +131,7 @@ class FlagWrap(object):
         """
         Well, unfortunately, we're dealing with misspelled flag meanings and we have work requests in to fix 
         this in L1b so, to handle this transparently over time, this function expects a list of flag names in 
-        options, and will return get_flags for the first one that exists.
+        options, and will return result of get_flag for the first one that exists.
         
         :type options: list[str]
         :param options: possible flag_meanings to seek
@@ -163,11 +168,28 @@ class FlagWrap(object):
         index = self._flag_meanings.index(flag_meaning)
         self.flags[i] |= self._flag_values[index]
 
+    def get_value_for_meaning(self, flag_meaning):
+        """
+        Get the value that sets flag_meaning. Intended to be used if, for example, the user wants
+        to impose some initial flag vector where the meaning is set to flag_meaning everywhere.
+        
+        eg:
+        >>> f = FlagWrap.init_zeros(x)
+        >>> f.flags = np.full(10, f.get_value_for_meaning("missing_data"), f.dtype)
+        
+        
+        :param flag_meaning: string flag name to return value of
+        :return: value of flag that sets flag_meaning
+        """
+        index = self._flag_meanings.index(flag_meaning)
+        return self._flag_values[index]
+
     def sync(self):
         """
         Write the flag_values contained to the netCDF variable.
-        
+
         :return: None
         """
+
         self._nc_var[:] = self.flags
 
