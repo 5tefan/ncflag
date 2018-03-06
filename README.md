@@ -1,7 +1,14 @@
 # NetCDF Flag Wrapper (ncflag)
 
-So... you want to inspect a [CF compliant NetCDF flag](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) variable?
+So... you want to inspect CF Compliant NetCDF flag variables?
 
+CF Compliant NetCDF Flag variables are integer flags associated with, or having:
+
+ - flag_values
+ - flag_meanings
+ - flag_masks (optionally)
+
+Read the [CF Conventions on flags](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) for more information.
 
 ## TL;DR
 
@@ -27,7 +34,7 @@ Options:
 
 Notes:
 
-Use --show_flags to discover what flags can be inspected.
+Use --show_flags to discover what flags in a given file can be inspected.
 
 Limitation: can only inspect flags of at most one dimension. See details below for dealing with multidimensional flags.
 
@@ -45,8 +52,13 @@ dimension will be printed instead of a iso 8601 timestamp.
 
 Occasionally, by some poor misfortune, you may encounter multidimensional flag variables. These are currently not
 supported by the Command Line Interface (CLI), however, the FlagWrap class can still be used in code, or through an
+<<<<<<< HEAD
 interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple of indicies to get the 
 flags set in a multidimensional flag variable. Below is an example. 
+=======
+interactive (IPython) session. The `FlagWrap.get_flags_set_at_index` can be passed a tuple to query the flags set in
+a multidimensional flag variable. Below is an example. 
+>>>>>>> 2038d5172c83f0a1082745ceb3f3b1b6dbea3f8f
 
 ```python
 from ncflag import FlagWrap
@@ -54,7 +66,7 @@ import netCDF4 as nc
 
 with nc.Dataset("somenetcdf.nc") as nc_in:
     v = nc_in.variables["mutidim_variable"]
-    print(v.shape)  # --> (2, 10)
+    print(v.shape)  # --> (2, 10), is multidim.
     w = FlagWrap(v)
     print(w.get_flags_set_at_index((0, 0)))  # --> ["good_quality_qf"]
 ```
@@ -82,7 +94,7 @@ named descriptively. A following functions are available:
 
 ## Testing
 
-TODO!
+TODO! (tested in production...., good enough right?)
 
 ---------------------
 
@@ -93,4 +105,3 @@ rm -r dist/
 python setup.py bdist_wheel --universal
 twine upload dist/*
 ```
-
