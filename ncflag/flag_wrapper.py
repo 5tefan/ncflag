@@ -26,7 +26,7 @@ class FlagWrap(object):
         nc_var.set_auto_scale(False)
         # array of actual flag values, pull this if it's needed to write to a file.
         self._nc_var = nc_var
-        self.flags = nc_var[:] if flags is None else flags  # type: np.array
+        self.flags = nc_var[:] if flags is None else np.array(flags)  # type: np.array
         self.flag_name = nc_var.name
         self.dtype = self.flags.dtype  # type: np.dtype
 
@@ -68,11 +68,23 @@ class FlagWrap(object):
         def get(meaning):
             """ Get the meaning of an individual flag_meaning. """
             index = self._flag_meanings.index(meaning)
-            return (self.flags & self._flag_masks[index]) == self._flag_values[index]
+
+            # start by default assuming there are no flags set.
+            # Do not return a masked array! All value should be either True or False.
+            # A flag is either set or not set. There is no inbetween.
+            default = np.full(self.flags.shape, False, dtype=np.bool)
+            if not np.ma.is_masked(self.flags):
+                mask = np.full_like(self.flags, True, np.bool)
+            else:
+                mask = ~np.ma.getmask(self.flags)
+
+            # only the booleans to True potentially only where flags are not masked in the first place.
+            default[mask] = (self.flags[mask] & self._flag_masks[index]) == self._flag_values[index]
+            return default
 
         if isinstance(flag_meaning, (list, tuple)):
             # if receive a sequence, or them together.
-            any_set = np.zeros_like(self.flags, dtype=np.bool)
+            any_set = np.zeros(self.flags.shape, dtype=np.bool)
             for each in flag_meaning:
                 any_set |= get(each)
             return any_set
@@ -103,6 +115,8 @@ class FlagWrap(object):
         :return: 
         """
         index = self._flag_meanings.index(flag_meaning)
+        if np.ma.is_masked(self.flags[i]):
+            return False  # when flag value is masked, no flags are set.
         return (self.flags[i] & self._flag_masks[index]) == self._flag_values[index]
 
     def get_flags_set_at_index(self, i, exit_on_good=False):
@@ -190,6 +204,5 @@ class FlagWrap(object):
 
         :return: None
         """
-
         self._nc_var[:] = self.flags
 
