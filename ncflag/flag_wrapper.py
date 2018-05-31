@@ -115,9 +115,11 @@ class FlagWrap(object):
         :return: 
         """
         index = self._flag_meanings.index(flag_meaning)
-        if np.ma.is_masked(self.flags[i]):
-            return False  # when flag value is masked, no flags are set.
-        return (self.flags[i] & self._flag_masks[index]) == self._flag_values[index]
+        flag_value = self.flags[i]
+        if np.ma.is_masked(flag_value):
+            return False
+        else:
+            return (flag_value & self._flag_masks[index]) == self._flag_values[index]
 
     def get_flags_set_at_index(self, i, exit_on_good=False):
         """

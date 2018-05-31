@@ -1,3 +1,7 @@
+# v0.0.3 - 2018 05 31
+ - Handle flags that are set to fill values, by definition, no flags are
+    set when the value is filled.
+
 # v0.0.2
 
  - Change: combine get_flag and get_flags -> get_flag. Pass get_flag
