@@ -37,8 +37,9 @@ class FlagWrap(object):
 
         # similarly, make sure that flag_masks is a list of same type as flags. If a varialbe doesn't have
         # a flag_masks attribute, the values don't need to be masked, so use -1 which is all 1's in binary.
-        self._flag_masks = np.array(getattr(nc_var, "flag_masks", np.full_like(self._flag_values, -1))).astype(
-            self.dtype)  # type: list
+        self._flag_masks = np.array(
+            getattr(nc_var, "flag_masks", np.full_like(self._flag_values, -1))
+        ).astype(self.dtype)  # type: list
 
         # flag_meanings is a big string though, split on spaces
         self._flag_meanings = nc_var.flag_meanings.split()  # type: list
@@ -170,11 +171,16 @@ class FlagWrap(object):
         :return: None
         """
         index = self._flag_meanings.index(flag_meaning)
+        self.flags &= ~self._flag_masks[index]
         self.flags |= np.array(flags).astype(np.bool) * self._flag_values[index]
 
     def set_flag_at_index(self, flag_meaning, i):
         """
         Set a flag at index i.
+
+        AND the original flag with the NOT mask, to 0 out any bits impacting the target location
+        of the flag_meaning within the bit vec while leaving the rest set or unset as they were.
+        Then, OR the flag value onto the target, preserves all other independent flags set.
         
         :type flag_meaning: str
         :param flag_meaning: flag meaning intended to be set
@@ -182,6 +188,7 @@ class FlagWrap(object):
         :return: None
         """
         index = self._flag_meanings.index(flag_meaning)
+        self.flags[i] &= ~self._flag_masks[index]
         self.flags[i] |= self._flag_values[index]
 
     def get_value_for_meaning(self, flag_meaning):
@@ -193,12 +200,31 @@ class FlagWrap(object):
         >>> f = FlagWrap.init_zeros(x)
         >>> f.flags = np.full(10, f.get_value_for_meaning("missing_data"), f.dtype)
         
+        Note: Raises ValueError if flag_meaning is not found.
         
         :param flag_meaning: string flag name to return value of
         :return: value of flag that sets flag_meaning
         """
         index = self._flag_meanings.index(flag_meaning)
         return self._flag_values[index]
+
+    def get_mask_for_meaning(self, flag_meaning):
+        """
+        Get the the mask that would be used to test if flag_meaning is set.
+
+        Use must be careful with this! One cannot assume that just because
+        (flag & mask) == 0 that the flag is not set. Must take into account
+        flag_values (see FlagWrapper.get_value_for_meaning(flag_meaning).
+        For flags in which flag_mask == flag_value, it is safe to or the
+        masks together in order to test if *any* of those flags are set.
+
+        Note: Raises ValueError if flag_meaning not found.
+        
+        :param flag_meaning: string flag name to return corrsponding mask of
+        :return: flag_mask value corresponding to flag_meaning
+        """
+        index = self._flag_meanings.index(flag_meaning)
+        return self._flag_masks[index]
 
     def sync(self):
         """

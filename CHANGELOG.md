@@ -1,3 +1,10 @@
+# v0.1.0 - 2018 06 05
+ - Fix method for setting flags. Previous method did not
+    work properly in some cases, eg. good_quality_qf. Now
+    clears bits in flag under the mask before setting value.
+ - Adds a get_mask_for_meaning function.
+ - Improves documentation and testing.
+
 # v0.0.3 - 2018 05 31
  - Handle flags that are set to fill values, by definition, no flags are
     set when the value is filled.
