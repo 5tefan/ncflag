@@ -1,3 +1,6 @@
+# v0.1.1 - 2018 06 05
+ - Add reset and init to custom value other than 0.
+
 # v0.1.0 - 2018 06 05
  - Fix method for setting flags. Previous method did not
     work properly in some cases, eg. good_quality_qf. Now

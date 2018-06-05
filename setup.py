@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='ncflag',
-    version='0.1.0',
+    version='0.1.1',
     description="Utility for interaction with CF compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",

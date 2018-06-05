@@ -56,6 +56,20 @@ class FlagWrap(object):
         """
         return cls(nc_var, np.zeros(shape, dtype=nc_var.dtype))
 
+    @classmethod
+    def init(cls, nc_var, shape, value):
+        """
+        Initialize a flag to a custom value of the correct datatype for nc_var.
+        :type nc_var: nc.Variable
+        :param nc_var: A netcdf Variable object
+        :type shape: int | tuple[int] | list[int]
+        :param shape: shape of the flag
+        :type value: np.integer
+        :param value: value to initialize flag to
+        :return: a FlagWrap instance initialized with 0s
+        """
+        return cls(nc_var, np.full(shape, value, dtype=nc_var.dtype))
+
     def get_flag(self, flag_meaning):
         """
         Get an array of flags for a certain meaning. Returned array will have element True where 
@@ -190,6 +204,14 @@ class FlagWrap(object):
         index = self._flag_meanings.index(flag_meaning)
         self.flags[i] &= ~self._flag_masks[index]
         self.flags[i] |= self._flag_values[index]
+
+    def reset_flag_values(self, to_value):
+        """
+        Completely reset/overwrite the value of the flags stored to be equal to_value.
+
+        :param to_value: value to set all flags to
+        """
+        self.flags = np.full_like(self.flags, to_value)
 
     def get_value_for_meaning(self, flag_meaning):
         """
