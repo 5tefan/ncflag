@@ -107,7 +107,7 @@ class FlagWrap(object):
             # otherwise just get the one.
             return get(flag_meaning)
 
-    def reduce(self, exclude_mask, axis=-1):
+    def reduce(self, exclude_mask=0, axis=-1):
         """
         Return a new FlagWrap with the current flags reduced along some axis, then
         anded against not mask.
@@ -173,20 +173,30 @@ class FlagWrap(object):
                 return self.get_flag(flag)
         raise ValueError("None of %s found." % options)
 
-    def set_flag(self, flag_meaning, flags):
+    def set_flag(self, flag_meaning, flags, set_false=True):
         """
         Set a particular flag in the bit vector. Given the flag_meaning and an array of booleans, set
         the flag where the booleans are true.
-        
+
+        The set_false parameter exposes a nuance in the flexibility of these flagging schemes. Recall that
+        when no flag_mask attribute is set, the "mask" defaults to be all bits 1, ie. one looks at the whole
+        variable as a single int to compare against the flag_value. In this situation, zeroing the target bits
+        zeros the entire value, which would "unset" any previous flag_meanings or fill values set.
+
         :type flag_meaning: str
         :param flag_meaning: flag meaning intended to be set
         :type flags: np.array
         :param flags: array of booleans to set
+        :type set_false: bool
+        :param set_false: explicitly set flag to false when flags indicates false
         :return: None
         """
         index = self._flag_meanings.index(flag_meaning)
-        self.flags &= ~self._flag_masks[index]
-        self.flags |= np.array(flags).astype(np.bool) * self._flag_values[index]
+        bool_flags = np.array(flags).astype(np.bool)
+        # regardless of bool_flags, need to set targeted field (indicated by mask) to zeros.
+        # if set_false is True, all flags will have targeted field zeroed, otherwise only ones that will be set.
+        self.flags[bool_flags | set_false] &= ~self._flag_masks[index]
+        self.flags |= bool_flags * self._flag_values[index]
 
     def set_flag_at_index(self, flag_meaning, i):
         """

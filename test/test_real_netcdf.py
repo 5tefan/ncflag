@@ -54,3 +54,4 @@ class TestXrs(TestCase):
         f.set_flag_at_index("good_quality_qf", 0)
         self.assertEqual(["good_quality_qf"], f.get_flags_set_at_index(0))
         
+        
