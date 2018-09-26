@@ -12,7 +12,7 @@ setup(
     description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
-    url="https://ctor.space/gitlab/work/ncflag",
+    url="https://github.com/5tefan/ncflag",
     packages=["ncflag"],
     long_description=read_md('README.md'),
     install_requires=[
