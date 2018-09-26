@@ -63,7 +63,7 @@ import netCDF4 as nc
 with nc.Dataset("somenetcdf.nc") as nc_in:
     v = nc_in.variables["mutidim_variable"]
     print(v.shape)  # --> (2, 10), is multidim.
-    w = FlagWrap(v)
+    w = FlagWrap.init_from_netcdf(v)
     print(w.get_flags_set_at_index((0, 0)))  # --> ["good_quality_qf"]
 ```
 
