@@ -12,7 +12,7 @@ def get_dataset():
 class TestXrs(TestCase):
     def test_yaw_flip_flag(self):
         ds = get_dataset()
-        f = FlagWrap(ds.variables["yaw_flip_flag"])
+        f = FlagWrap.init_from_netcdf(ds.variables["yaw_flip_flag"])
 
         # the flag value at masked_index is masked, i.e. has no value.
         # below, make sure that's accounted for properly. Should not return
@@ -31,7 +31,7 @@ class TestXrs(TestCase):
 
     def test_misc_consistency(self):
         ds = get_dataset()
-        f = FlagWrap(ds.variables["quality_flags"])
+        f = FlagWrap.init_from_netcdf(ds.variables["quality_flags"])
 
         # good_quality_qf is first in the list and easy to manually establish...
         # value should be 0...

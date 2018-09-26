@@ -38,7 +38,7 @@ def cli(ncfile, flag, use_time_var, l):
         assert hasattr(v, "flag_values"), "%s is not CF compliant flag, missing flag_values" % flag
         assert hasattr(v, "flag_meanings"), "%s is not CF compliant flag, missing flag_meanings" % flag
         assert len(v.dimensions) == 1, "multidimensional flags are not supported, see docs and use ipython instead"
-        w = FlagWrap(v)
+        w = FlagWrap.init_from_netcdf(v)
         if use_time_var is not None:
             t = nc_in.variables[use_time_var]  # type: nc.Variable
             assert t.dimensions == v.dimensions, "To print flags by time, time flag must share dimensions"

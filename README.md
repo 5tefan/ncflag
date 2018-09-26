@@ -8,7 +8,8 @@ CF Compliant NetCDF Flag variables are integer flags associated with, or having:
  - flag_meanings
  - flag_masks (optionally)
 
-Read the [CF Conventions on flags](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) for more information.
+Read the [CF Conventions on flags](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#flags) 
+for more information.
 
 ## TL;DR
 
@@ -73,23 +74,26 @@ above for multidimensional flags.
 
 For documentation, please read `flag_wrapper.py`. It is one file
 and is documented with comprehensive docstrings. The functions are
-named descriptively. A following functions are available:
+named descriptively. A following functions are available from a FlagWrap instance.
 
-    - init_zeros(cls, nc_var, shape)
     - get_flag(self, flag_meaning)
     - reduce(self, exclude_mask, axis=-1)
     - get_flag_at_index(self, flag_meaning, i)
     - get_flags_set_at_index(self, i, exit_on_good=False)
     - find_flag(self, options)
-    - set_flag(self, flag_meaning, flags)
+    - set_flag(self, flag_meaning, should_be_set, zero_if_unset=True)
     - set_flag_at_index(self, flag_meaning, i)
     - get_value_for_meaning(self, flag_meaning)
-    - sync(self)
+    - get_mask_for_meaning(self, flag_meaning)
 
 
 ## Testing
 
-TODO! (tested in production...., good enough right?)
+There are tests, using both synthetic flags, as well as some more serious tests
+for some fairly complex "in the wild" flags taken from a sample GOES-16 EXIS-L1b-SFXR product file.
+
+`test/test_theoretical.py` is actually a very thourough read to help anyone really understand
+what's possible and what's going on with these flags.
 
 ---------------------
 
