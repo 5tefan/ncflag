@@ -1,4 +1,5 @@
 import numpy as np
+from six import string_types
 
 
 class FlagWrap(object):
@@ -14,8 +15,8 @@ class FlagWrap(object):
 
         :type flags: np.ndarray
         :param flags: array, flag values indicated
-        :type flag_meanings: list[basestring] | basestring
-        :param flag_meanings: list[str] | str, flag_meaning, string name of each designated flag_meaning
+        :type flag_meanings: list[string_types] | string_types
+        :param flag_meanings: list[string_types] | string_types, flag_meaning, string name of each designated flag_meaning
         :type flag_values: np.array
         :param flag_values: array, value of flag indicating corresponding flag_meaning set
         :type flag_masks: np.array
@@ -31,7 +32,7 @@ class FlagWrap(object):
         else:
             self.flags = np.array(flags)
 
-        if isinstance(flag_meanings, basestring):
+        if isinstance(flag_meanings, string_types):
             self._flag_meanings = flag_meanings.split()  # split on spaces
         else:
             assert isinstance(flag_meanings, list), \
@@ -82,7 +83,7 @@ class FlagWrap(object):
         """
         Get an array of booleans, same length as flags, at each index indicating if flag_meaning was set.
 
-        :type flag_meaning: str | list[str] | tuple[str]
+        :type flag_meaning: string_types | list[string_types] | tuple[string_types]
         :param flag_meaning: flag meaning(s) to be looked up
         :rtype: np.array
         :return: array of booleans where flag_meaning(s) is(are) set
@@ -141,7 +142,7 @@ class FlagWrap(object):
         """
         Returns True or False if flag_meaning set at index i?
         
-        :type flag_meaning: str
+        :type flag_meaning: string_types
         :param flag_meaning: flag meaning intended to be set
         :type i: int
         :param i: index in wrapped flags array to inspect.
@@ -163,7 +164,7 @@ class FlagWrap(object):
         :param i: the index to examine
         :type exit_on_good: bool
         :param exit_on_good: shortcut, return good as soon as good is found
-        :rtype: list[str]
+        :rtype: list[string_types]
         :return: a list of flags_meanings set at index i
         """
         flags_set = []
@@ -191,7 +192,7 @@ class FlagWrap(object):
         History: dealing with misspelled flag_meanings that will eventually be fixed, but now we must think
         about making the code work properly, transparently over time, over the point when the input is fixed.
 
-        :type options: list[str]
+        :type options: list[string_types]
         :param options: list of potential flag_meanings to seek
         :rtype: np.array
         :return: array of booleans indicating where first flag_meaning found is set.
@@ -213,7 +214,7 @@ class FlagWrap(object):
         flags where the whole value indicates the flag_meaning, so zeroing the target bits before setting
         on should_be_set will clear any previous flag_meanings or fill values that were set.
 
-        :type flag_meaning: str
+        :type flag_meaning: string_types
         :param flag_meaning: flag meaning intended to be set
         :type should_be_set: np.array
         :param should_be_set: array of booleans to set
@@ -244,7 +245,7 @@ class FlagWrap(object):
         of the flag_meaning within the bit vec while leaving the rest set or unset as they were.
         Then, OR the flag value onto the target, preserves all other independent flags set.
         
-        :type flag_meaning: str
+        :type flag_meaning: string_types
         :param flag_meaning: flag meaning intended to be set
         :type i: int
         :param i: index at which to set flag_meaning
@@ -271,7 +272,7 @@ class FlagWrap(object):
         
         Note: Raises ValueError if flag_meaning is not found.
 
-        :type flag_meaning: basestring
+        :type flag_meaning: string_types
         :param flag_meaning: string flag name to return value of
         :rtype: int
         :return: value of flag that sets flag_meaning
@@ -291,7 +292,7 @@ class FlagWrap(object):
 
         Note: Raises ValueError if flag_meaning not found.
         
-        :type flag_meaning: basestring
+        :type flag_meaning: string_types
         :param flag_meaning: string flag name to return corrsponding mask of
         :rtype: int
         :return: flag_mask value corresponding to flag_meaning

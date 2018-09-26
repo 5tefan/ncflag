@@ -1,1 +1,1 @@
-from flag_wrapper import FlagWrap
+from .flag_wrapper import FlagWrap
