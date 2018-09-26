@@ -1,3 +1,14 @@
+# v0.2.0 - 2018 09 25
+ - netcdf agnostic, just need flag_meanings, flag_values, and optionally
+flag_masks.
+ - Previous FlagWrap(netcdf.Variable) construction should be replaced with
+FlagWrap.init_from_netcdf(netcdf.Variable) class method to conveniently
+construct from FlagWrap.
+ - Confusing sync method removed. Replaced with interface:
+FlagWrap.write_to_netcdf(netcdf.Variable).
+ - Fixed bug in setting mutually exclusive flag_meanings.
+ - Added comprehensive testing.
+
 # v0.1.1 - 2018 06 05
  - Add reset and init to custom value other than 0.
 
