@@ -1,20 +1,15 @@
 from setuptools import setup
-try:
-    from pypandoc import convert
-    read_md = lambda f: convert(f, 'rst')
-except ImportError:
-    print("warning: pypandoc module not found, could not convert Markdown to RST")
-    read_md = lambda f: open(f, 'r').read()
+from pypandoc import convert_file
 
 setup(
     name='ncflag',
-    version='0.2.0',
+    version='0.2.4',
     description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
     url="https://github.com/5tefan/ncflag",
     packages=["ncflag"],
-    long_description=read_md('README.md'),
+    long_description=convert_file('README.md', 'rst'),
     install_requires=[
         'Click',
         'numpy',

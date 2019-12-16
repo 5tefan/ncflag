@@ -1,3 +1,7 @@
+# v0.2.4 - 2019 12 16
+ - cli: Support Python 3 by removing relative import.
+ - setup.py move to `convert_file` from deprecated pypandoc `convert`
+
 # v0.2.0 - 2018 09 25
  - netcdf agnostic, just need flag_meanings, flag_values, and optionally
 flag_masks.

@@ -2,7 +2,7 @@ import click
 import logging
 import pkg_resources
 import netCDF4 as nc
-from flag_wrapper import FlagWrap
+from .flag_wrapper import FlagWrap
 
 try:
     version = pkg_resources.require("ncflag")[0].version
