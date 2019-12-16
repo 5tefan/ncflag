@@ -52,18 +52,39 @@ class FlagWrap(object):
                 "flag_meanings vs flag_masks length mismatch: found {} and {}".format(len(self._flag_meanings),
                                                                                       len(self._flag_masks))
 
+        # This is only for use with init_from_netcdf to hold the reference to nc_var so that
+        # the caller doesn't have to associate the write_to_netcdf call with an nc_var if it's the same as
+        # it was initialized with. Otherwise, self._nc_var should never be used in the FlagWrap!!!
+        self._nc_var = None
+
     @classmethod
-    def init_from_netcdf(cls, nc_var):
+    def init_from_netcdf(cls, nc_var, shape=None, fill=None):
         """
         Initialize a FlagWrap instance from a reference to a NetCDF Variable.
 
+        Default behavior, if no shape or fill are specified, the flags are read from the variable,
+        otherwise, if shape and fill are specified, the flag values will be initialized to that shape with
+        the fill value specified.
+
         :type nc_var: netCDF4.Variable
         :param nc_var: reference to NetCDF variable to wrap
+        :type shape: tuple
+        :param shape: If data is to be initialized instead of read from variable, secify shape (dimensions).
+        :type fill: int
+        :param fill: Again, if initializing data, what fill value to use.
         :return: FlagWrap instance for nc_var
         """
-        return cls(nc_var[:], nc_var.flag_meanings, nc_var.flag_values, getattr(nc_var, "flag_masks", None))
+        if shape is not None and fill is not None:
+            flags = np.full(shape, fill, dtype=nc_var.dtype)
+            instance = cls(flags, nc_var.flag_meanings, nc_var.flag_values, getattr(nc_var, "flag_masks", None))
+        else:
+            instance = cls(nc_var[:], nc_var.flag_meanings, nc_var.flag_values, getattr(nc_var, "flag_masks", None))
 
-    def write_to_netcdf(self, nc_var):
+        instance._nc_var = nc_var
+
+        return instance
+
+    def write_to_netcdf(self, nc_var=None):
         """
         Write a FlagWrap values and metadata to a NetCDF4 Variable.
 
@@ -71,6 +92,11 @@ class FlagWrap(object):
         :param nc_var: reference to NetCDF variable to write FlagWrap to.
         :return: None
         """
+        if nc_var is None and self._nc_var is not None:
+            nc_var = self._nc_var
+        elif nc_var is None:
+            raise RuntimeError("write_to_netcdf called w/o target nc_var and appears not to be init from an nc_var.")
+
         nc_var[:] = self.flags
         nc_var.flag_meanings = " ".join(self._flag_meanings)
         nc_var.flag_values = self._flag_values
@@ -299,3 +325,4 @@ class FlagWrap(object):
         """
         index = self._flag_meanings.index(flag_meaning)
         return self._flag_masks[index]
+

@@ -1,6 +1,8 @@
-# v0.2.4 - 2019 12 16
+# v0.2.5 - 2019 12 16
  - cli: Support Python 3 by removing relative import.
  - setup.py move to `convert_file` from deprecated pypandoc `convert`
+ - Adds shape, fill shortcuts for `init_from_netcdf`
+ - Persist internal reference to netcdf object for convenience in `write_to_netcdf`.
 
 # v0.2.0 - 2018 09 25
  - netcdf agnostic, just need flag_meanings, flag_values, and optionally
