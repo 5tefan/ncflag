@@ -35,22 +35,27 @@ class FlagWrap(object):
         if isinstance(flag_meanings, string_types):
             self._flag_meanings = flag_meanings.split()  # split on spaces
         else:
-            assert isinstance(flag_meanings, list), \
-                "expected flag_meanings as either list of flag_meanings, or space separated string of flag_meanings"
+            assert isinstance(
+                flag_meanings, list
+            ), "expected flag_meanings as either list of flag_meanings, or space separated string of flag_meanings"
             self._flag_meanings = flag_meanings
 
         self._flag_values = np.array(flag_values).astype(self.flags.dtype)
-        assert len(self._flag_values) == len(self._flag_meanings), \
-            "flag_meanings vs flag_values length mismatch: found {} and {}".format(len(self._flag_meanings),
-                                                                                   len(self._flag_values))
+        assert len(self._flag_values) == len(
+            self._flag_meanings
+        ), "flag_meanings vs flag_values length mismatch: found {} and {}".format(
+            len(self._flag_meanings), len(self._flag_values)
+        )
 
         if flag_masks is None:
             self._flag_masks = np.full_like(self._flag_values, -1)
         else:
             self._flag_masks = np.array(flag_masks).astype(self.flags.dtype)
-            assert len(self._flag_masks) == len(self._flag_meanings), \
-                "flag_meanings vs flag_masks length mismatch: found {} and {}".format(len(self._flag_meanings),
-                                                                                      len(self._flag_masks))
+            assert len(self._flag_masks) == len(
+                self._flag_meanings
+            ), "flag_meanings vs flag_masks length mismatch: found {} and {}".format(
+                len(self._flag_meanings), len(self._flag_masks)
+            )
 
         # This is only for use with init_from_netcdf to hold the reference to nc_var so that
         # the caller doesn't have to associate the write_to_netcdf call with an nc_var if it's the same as
@@ -76,9 +81,19 @@ class FlagWrap(object):
         """
         if shape is not None and fill is not None:
             flags = np.full(shape, fill, dtype=nc_var.dtype)
-            instance = cls(flags, nc_var.flag_meanings, nc_var.flag_values, getattr(nc_var, "flag_masks", None))
+            instance = cls(
+                flags,
+                nc_var.flag_meanings,
+                nc_var.flag_values,
+                getattr(nc_var, "flag_masks", None),
+            )
         else:
-            instance = cls(nc_var[:], nc_var.flag_meanings, nc_var.flag_values, getattr(nc_var, "flag_masks", None))
+            instance = cls(
+                nc_var[:],
+                nc_var.flag_meanings,
+                nc_var.flag_values,
+                getattr(nc_var, "flag_masks", None),
+            )
 
         instance._nc_var = nc_var
 
@@ -95,13 +110,17 @@ class FlagWrap(object):
         if nc_var is None and self._nc_var is not None:
             nc_var = self._nc_var
         elif nc_var is None:
-            raise RuntimeError("write_to_netcdf called w/o target nc_var and appears not to be init from an nc_var.")
+            raise RuntimeError(
+                "write_to_netcdf called w/o target nc_var and appears not to be init from an nc_var."
+            )
 
         nc_var[:] = self.flags
         nc_var.flag_meanings = " ".join(self._flag_meanings)
         nc_var.flag_values = self._flag_values
-        if (not np.all(self._flag_masks == np.full_like(self._flag_values, -1)) or
-                getattr(nc_var, "flag_masks", None) is not None):
+        if (
+            not np.all(self._flag_masks == np.full_like(self._flag_values, -1))
+            or getattr(nc_var, "flag_masks", None) is not None
+        ):
             # only write masks if they aren't the default all bits 1 or somethign existed before
             nc_var.flag_masks = self._flag_masks
 
@@ -129,7 +148,9 @@ class FlagWrap(object):
                 mask = ~np.ma.getmask(self.flags)
 
             # only the booleans to True potentially only where flags are not masked in the first place.
-            default[mask] = (self.flags[mask] & self._flag_masks[index]) == self._flag_values[index]
+            default[mask] = (
+                self.flags[mask] & self._flag_masks[index]
+            ) == self._flag_values[index]
             return default
 
         if isinstance(flag_meaning, (list, tuple)):
@@ -161,7 +182,7 @@ class FlagWrap(object):
             np.ma.bitwise_or.reduce(self.flags, axis=axis) & ~exclude_mask,
             self._flag_meanings,
             self._flag_values,
-            self._flag_masks
+            self._flag_masks,
         )
 
     def get_flag_at_index(self, flag_meaning, i):
@@ -325,4 +346,3 @@ class FlagWrap(object):
         """
         index = self._flag_meanings.index(flag_meaning)
         return self._flag_masks[index]
-
