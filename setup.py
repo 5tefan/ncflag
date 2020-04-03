@@ -3,7 +3,7 @@ from pypandoc import convert_file
 
 setup(
     name="ncflag",
-    version="0.2.5",
+    version="0.2.6",
     description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
