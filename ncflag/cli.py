@@ -22,7 +22,7 @@ def show_flags(ctx, param, ncfile):
                 and len(v.dimensions) == 1
             ):
                 valid_flags.append(k)
-    click.echo("Inspectable flags: %s" % map(str, valid_flags))
+    click.echo("Inspectable flags: {}".format(" ".join(valid_flags)))
     ctx.exit()
 
 

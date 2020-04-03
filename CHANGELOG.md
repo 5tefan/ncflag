@@ -1,3 +1,6 @@
+# v0.2.6 - 2020 04 03
+ - Bug fix: cli: fix `--show_flags` option not working for Python 3
+
 # v0.2.5 - 2019 12 16
  - cli: Support Python 3 by removing relative import.
  - setup.py move to `convert_file` from deprecated pypandoc `convert`
