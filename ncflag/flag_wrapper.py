@@ -346,3 +346,19 @@ class FlagWrap(object):
         """
         index = self._flag_meanings.index(flag_meaning)
         return self._flag_masks[index]
+
+    def is_valid_meaning(self, flag_meaning):
+        """
+        Test if a flag_meaning is valid or exists.
+
+        Convenience function to handle common use case of checking if a
+        flag_meaning is valid for the wrapped flag, without accessing 
+        the "private" self._flag_meanings attirbute.
+
+        :type flag_meaning: string_types
+        :param flag_meaning: string flag name to test existence of.
+        :rtype: bool
+        :return: if flag_meaning is a valid meaning for the flag.
+        """
+        return flag_meaning in self._flag_meanings
+

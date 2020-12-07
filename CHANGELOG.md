@@ -1,3 +1,7 @@
+# unreleased
+ - New method: `FlagWrap.is_valid_meaning` to test if a meaning is valid without accessing
+    the internal _flag_meanings attribute.
+
 # v0.2.6 - 2020 04 03
  - Bug fix: cli: fix `--show_flags` option not working for Python 3
 
