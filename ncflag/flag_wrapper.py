@@ -33,18 +33,18 @@ class FlagWrap(object):
             self.flags = np.array(flags)
 
         if isinstance(flag_meanings, string_types):
-            self._flag_meanings = flag_meanings.split()  # split on spaces
+            self.flag_meanings = flag_meanings.split()  # split on spaces
         else:
             assert isinstance(
                 flag_meanings, list
             ), "expected flag_meanings as either list of flag_meanings, or space separated string of flag_meanings"
-            self._flag_meanings = flag_meanings
+            self.flag_meanings = flag_meanings
 
         self._flag_values = np.array(flag_values).astype(self.flags.dtype)
         assert len(self._flag_values) == len(
-            self._flag_meanings
+            self.flag_meanings
         ), "flag_meanings vs flag_values length mismatch: found {} and {}".format(
-            len(self._flag_meanings), len(self._flag_values)
+            len(self.flag_meanings), len(self._flag_values)
         )
 
         if flag_masks is None:
@@ -52,9 +52,9 @@ class FlagWrap(object):
         else:
             self._flag_masks = np.array(flag_masks).astype(self.flags.dtype)
             assert len(self._flag_masks) == len(
-                self._flag_meanings
+                self.flag_meanings
             ), "flag_meanings vs flag_masks length mismatch: found {} and {}".format(
-                len(self._flag_meanings), len(self._flag_masks)
+                len(self.flag_meanings), len(self._flag_masks)
             )
 
         # This is only for use with init_from_netcdf to hold the reference to nc_var so that
@@ -115,7 +115,7 @@ class FlagWrap(object):
             )
 
         nc_var[:] = self.flags
-        nc_var.flag_meanings = " ".join(self._flag_meanings)
+        nc_var.flag_meanings = " ".join(self.flag_meanings)
         nc_var.flag_values = self._flag_values
         if (
             not np.all(self._flag_masks == np.full_like(self._flag_values, -1))
@@ -136,7 +136,7 @@ class FlagWrap(object):
 
         def get(meaning):
             """ Get the meaning of an individual flag_meaning. """
-            index = self._flag_meanings.index(meaning)
+            index = self.flag_meanings.index(meaning)
 
             # start by default assuming there are no flags set.
             # Do not return a masked array! All value should be either True or False.
@@ -186,7 +186,7 @@ class FlagWrap(object):
 
         return FlagWrap(
             new_flags,
-            self._flag_meanings,
+            self.flag_meanings,
             self._flag_values,
             self._flag_masks,
         )
@@ -202,7 +202,7 @@ class FlagWrap(object):
         :rtype: bool
         :return: bool indicating if flag_meaning was set at index i
         """
-        index = self._flag_meanings.index(flag_meaning)
+        index = self.flag_meanings.index(flag_meaning)
         flag_value = self.flags[i]
         if np.ma.is_masked(flag_value):
             return False
@@ -224,11 +224,11 @@ class FlagWrap(object):
         # if exit_on_good, exit if a good_quality_qf type flag is found
         # assumptions: good_quality_qf has the substring "good" and flag value can only be 0.
         if exit_on_good and self.flags[i] == 0:
-            good_meaning = next((f for f in self._flag_meanings if "good" in f), None)
+            good_meaning = next((f for f in self.flag_meanings if "good" in f), None)
             if good_meaning is not None:
                 return [good_meaning]
         # otherwise, go into nominal search through all flags. If set, accumulate.
-        for flag_meaning in self._flag_meanings:
+        for flag_meaning in self.flag_meanings:
             if self.get_flag_at_index(flag_meaning, i):
                 flags_set.append(flag_meaning)
         return flags_set
@@ -251,7 +251,7 @@ class FlagWrap(object):
         :return: array of booleans indicating where first flag_meaning found is set.
         """
         for flag in options:
-            if flag in self._flag_meanings:
+            if flag in self.flag_meanings:
                 return self.get_flag(flag)
         raise ValueError("None of %s found." % options)
 
@@ -275,7 +275,7 @@ class FlagWrap(object):
         :param zero_if_unset: explicitly set flag to false when flags indicates false
         :return: None
         """
-        index = self._flag_meanings.index(flag_meaning)
+        index = self.flag_meanings.index(flag_meaning)
         bool_flags = np.array(should_be_set).astype(np.bool)
         if np.ma.is_masked(self.flags):
             # if it's masked, set initial flag to 0 where going to set flags (from bool_flags)
@@ -304,7 +304,7 @@ class FlagWrap(object):
         :param i: index at which to set flag_meaning
         :return: None
         """
-        index = self._flag_meanings.index(flag_meaning)
+        index = self.flag_meanings.index(flag_meaning)
         if np.ma.is_masked(self.flags[i]):
             # if flag is masked initially, need to clear everything and then apply value
             self.flags[i] = 0
@@ -330,7 +330,7 @@ class FlagWrap(object):
         :rtype: int
         :return: value of flag that sets flag_meaning
         """
-        index = self._flag_meanings.index(flag_meaning)
+        index = self.flag_meanings.index(flag_meaning)
         return self._flag_values[index]
 
     def get_mask_for_meaning(self, flag_meaning):
@@ -350,7 +350,7 @@ class FlagWrap(object):
         :rtype: int
         :return: flag_mask value corresponding to flag_meaning
         """
-        index = self._flag_meanings.index(flag_meaning)
+        index = self.flag_meanings.index(flag_meaning)
         return self._flag_masks[index]
 
     def is_valid_meaning(self, flag_meaning):
@@ -358,13 +358,12 @@ class FlagWrap(object):
         Test if a flag_meaning is valid or exists.
 
         Convenience function to handle common use case of checking if a
-        flag_meaning is valid for the wrapped flag, without accessing
-        the "private" self._flag_meanings attirbute.
+        flag_meaning is valid for the wrapped flag.
 
         :type flag_meaning: string_types
         :param flag_meaning: string flag name to test existence of.
         :rtype: bool
         :return: if flag_meaning is a valid meaning for the flag.
         """
-        return flag_meaning in self._flag_meanings
+        return flag_meaning in self.flag_meanings
 

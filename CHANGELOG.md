@@ -3,6 +3,7 @@
     the internal _flag_meanings attribute.
  - Change reduce method to exclude _entire_ flag vectors (all bits) from reduction if any bits in
    the exclude_mask are set.
+ - Make FlagWrap.flag_meanings "public" (prev. FlagWrap._flag_meanings)
 
 # v0.2.6 - 2020 04 03
  - Bug fix: cli: fix `--show_flags` option not working for Python 3

@@ -55,7 +55,7 @@ class TestTheoretical(TestCase):
         )
 
         # identity test:
-        for flag_meaning in f._flag_meanings:
+        for flag_meaning in f.flag_meanings:
             f.set_flag(flag_meaning, np.zeros_like(original_flags), zero_if_unset=False)
             np.testing.assert_array_equal(f.flags, original_flags)
 
@@ -115,7 +115,7 @@ class TestTheoretical(TestCase):
         these_dont_exist = ["thegrinch", "lochnessmonster", "dreams"]
         with self.assertRaises(ValueError):
             f.find_flag(these_dont_exist)
-        for flag_meaning in f._flag_meanings:
+        for flag_meaning in f.flag_meanings:
             np.testing.assert_array_equal(
                 f.find_flag(these_dont_exist + [flag_meaning]), f.get_flag(flag_meaning)
             )
@@ -136,7 +136,7 @@ class TestTheoretical(TestCase):
         )
 
         # make sure that none of the flags are indicated if flags are completely masked
-        for flag_meaning in f._flag_meanings:
+        for flag_meaning in f.flag_meanings:
             np.testing.assert_array_equal(f.get_flag(flag_meaning), np.zeros(5))
             f.set_flag(
                 flag_meaning, np.zeros_like(original_flags), zero_if_unset=False
@@ -212,7 +212,7 @@ class TestTheoretical(TestCase):
         np.testing.assert_array_equal(f.get_flag("blue"), np.array([0, 0, 0, 1, 0, 1]))
 
         # identity test:
-        for flag_meaning in f._flag_meanings:
+        for flag_meaning in f.flag_meanings:
             f.set_flag(flag_meaning, np.zeros_like(f.flags), zero_if_unset=False)
             np.testing.assert_array_equal(f.flags, original_flags)
 
