@@ -165,10 +165,10 @@ class FlagWrap(object):
 
     def reduce(self, exclude_mask=0, axis=-1):
         """
-        Return a new FlagWrap with the current flags reduced along some axis, then
-        anded against not mask.
+        Return a new FlagWrap with the current flags reduced along some axis, possibly with
+        some bit vectors excluded when anything from exclude_mask is set.
 
-        Utility: reduce a multidimensional flag.
+        Primary purpose: reduce a multidimensional flag.
 
         :type exclude_mask: int
         :param exclude_mask: mask indicating (where bits are 1) where to exclude from reduced
@@ -177,9 +177,15 @@ class FlagWrap(object):
         :rtype: FlagWrap
         :return: FlagWrap instance wrapping a flag with one fewer dimensions
         """
-        exclude_mask = self.flags.dtype.type(exclude_mask)
+        if exclude_mask != 0:
+            exclude_mask = self.flags.dtype.type(exclude_mask)
+            excluded_flags_not_set = (self.flags & exclude_mask) == 0
+            new_flags = np.ma.bitwise_or.reduce(self.flags * excluded_flags_not_set, axis=axis)
+        else:
+            new_flags = np.ma.bitwise_or.reduce(self.flags, axis=axis)
+
         return FlagWrap(
-            np.ma.bitwise_or.reduce(self.flags, axis=axis) & ~exclude_mask,
+            new_flags,
             self._flag_meanings,
             self._flag_values,
             self._flag_masks,
@@ -352,7 +358,7 @@ class FlagWrap(object):
         Test if a flag_meaning is valid or exists.
 
         Convenience function to handle common use case of checking if a
-        flag_meaning is valid for the wrapped flag, without accessing 
+        flag_meaning is valid for the wrapped flag, without accessing
         the "private" self._flag_meanings attirbute.
 
         :type flag_meaning: string_types

@@ -1,6 +1,8 @@
 # unreleased
  - New method: `FlagWrap.is_valid_meaning` to test if a meaning is valid without accessing
     the internal _flag_meanings attribute.
+ - Change reduce method to exclude _entire_ flag vectors (all bits) from reduction if any bits in
+   the exclude_mask are set.
 
 # v0.2.6 - 2020 04 03
  - Bug fix: cli: fix `--show_flags` option not working for Python 3
