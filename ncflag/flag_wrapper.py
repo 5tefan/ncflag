@@ -9,7 +9,7 @@ class FlagWrap(object):
     of using (error prone) hardcoded masks and values.
     """
 
-    def __init__(self, flags, flag_meanings, flag_values, flag_masks=None):
+    def __init__(self, flags, flag_meanings, flag_values, flag_masks=None, name=None):
         """
         Initialize a FlagWrapper for a set of flags with associated metadata.
 
@@ -57,6 +57,8 @@ class FlagWrap(object):
                 len(self.flag_meanings), len(self._flag_masks)
             )
 
+        self.name = name
+
         # This is only for use with init_from_netcdf to hold the reference to nc_var so that
         # the caller doesn't have to associate the write_to_netcdf call with an nc_var if it's the same as
         # it was initialized with. Otherwise, self._nc_var should never be used in the FlagWrap!!!
@@ -86,6 +88,7 @@ class FlagWrap(object):
                 nc_var.flag_meanings,
                 nc_var.flag_values,
                 getattr(nc_var, "flag_masks", None),
+                name=nc_var.name
             )
         else:
             instance = cls(
@@ -93,6 +96,7 @@ class FlagWrap(object):
                 nc_var.flag_meanings,
                 nc_var.flag_values,
                 getattr(nc_var, "flag_masks", None),
+                name=nc_var.name
             )
 
         instance._nc_var = nc_var
