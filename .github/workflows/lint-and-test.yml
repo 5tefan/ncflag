@@ -9,7 +9,9 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7]
+        # smc@2020-12-11 3.8 and 3.9 still don't seem ready with
+        # ValueError: did not find HDF5 headers installing deps.
+        python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v1
