@@ -1,0 +1,9 @@
+name: ncagg
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy
+  - netCDF4
+  - Click=7.*.*
+
