@@ -14,8 +14,8 @@ class TestTheoretical(TestCase):
             FlagWrap(np.array([]), "flag1 flag2", [1, 2], [-1, -1, -1])
 
     def test_exclusive_flag_type(self):
-        """ A barrage of tests to make sure everything works properly for flag variables defined
-         so that every flag_meaning is mutually exclusive. """
+        """A barrage of tests to make sure everything works properly for flag variables defined
+        so that every flag_meaning is mutually exclusive."""
 
         original_flags = np.array([0, 0, 1, 2, 3, -1], dtype=np.ubyte)
 
@@ -122,9 +122,9 @@ class TestTheoretical(TestCase):
         # ok, we'll call it good there.
 
     def test_maskedarray_initial_flags(self):
-        """ Similar to the previous test, except start with a masked array and fill...
+        """Similar to the previous test, except start with a masked array and fill...
         This will be what it looks like if someone does init_from_netcdf for an unwritten variable
-        that actually has shape. """
+        that actually has shape."""
 
         original_flags = np.ma.zeros(5, dtype=np.ubyte)
         original_flags.mask = True
