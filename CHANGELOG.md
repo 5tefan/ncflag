@@ -1,3 +1,8 @@
+# v0.3.1 - 2022 06 26
+
+- `ignore_missing` option on `get_flag` to bitwise and flag meanings, but not raise exception if a
+  meaning is missing from the flag.
+
 # v0.3.0 - 2020 12 11
  - New method: `FlagWrap.is_valid_meaning` for convenience.
  - Change reduce method to exclude _entire_ flag vectors (all bits) from reduction if any bits in
