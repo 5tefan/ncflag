@@ -1,9 +1,9 @@
-name: ncagg
+name: ncflag
 channels:
   - conda-forge
   - defaults
 dependencies:
   - numpy
   - netCDF4
-  - Click=7.*.*
+  - click
 

@@ -1,16 +1,17 @@
 from setuptools import setup
-from pypandoc import convert_file
+
 
 setup(
     name="ncflag",
-    version="0.3.1",
+    version="0.3.2",
     description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
     url="https://github.com/5tefan/ncflag",
     packages=["ncflag"],
-    long_description=convert_file("README.md", "rst"),
-    install_requires=["Click", "numpy", "netCDF4"],
+    long_description=open("README.md", "r").read(),
+    long_description_content_type="text/markdown",
+    install_requires=["click", "numpy", "netCDF4"],
     entry_points="""
         [console_scripts]
         ncflag=ncflag.cli:cli

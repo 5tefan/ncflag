@@ -1,3 +1,8 @@
+# v0.3.2 - 2022 10 02
+
+- use long_description_content_type="text/markdown" in setup.py
+- unpin click dep, tested with latest 8.1.3
+
 # v0.3.1 - 2022 06 26
 
 - `ignore_missing` option on `get_flag` to bitwise and flag meanings, but not raise exception if a
