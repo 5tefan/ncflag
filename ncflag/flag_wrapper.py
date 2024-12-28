@@ -68,7 +68,7 @@ class FlagWrap:
             )
 
         if flag_masks is None:
-            self._flag_masks = np.invert(np.zeros_like(self._flag_values))
+            self.flag_masks = np.invert(np.zeros_like(self.flag_values))
         else:
             self.flag_masks = np.array(flag_masks).astype(self.flags.dtype)
         if len(self.flag_masks) != len(self.flag_meanings):
