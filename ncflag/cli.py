@@ -46,7 +46,8 @@ def show_flags(ctx: click.Context, param: str, ncfile: str) -> None:
 @click.option(
     "--use-time-var",
     help="Variable in NetCDF file to use to display timestamps",
-    type=click.STRING, default=None,
+    type=click.STRING,
+    default=None,
 )
 @click.option(
     "--log-level",

@@ -1,6 +1,6 @@
 # ncflag
 
-An API that makes working with bitwise quality flag vectors easy!
+An API that makes working with bitwise quality flags easy!
 
 ## Motivation
 
@@ -42,8 +42,9 @@ are unlikely to immediately know where the `3` (mask) and `0` (value) came from 
 values are correct in the context of the program. On the other hand, it's relatively easy to
 understand that we're reading some kind of "good" flag when encountering the `ncflag` API.
 
-Spot the bug: `temperature_anomaly = flag & 2 == 0`... a bit subtle. But what about now?
-`temperature_anomaly = flag.get_flag("satellite_maneuver")`... a little less subtle!
+Spot the bug: `temperature_anomaly = flag & 2 == 0`... not easy! But what about now?
+`temperature_anomaly = flag.get_flag("satellite_maneuver")`... a little less subtle! Looks like
+we're reading the "satellite_maneuver" flag into a variable called "temperature_anomaly"... sus.
 
 What happens if the data provider realizes that data is still good during a satellite maneuver? They
 would adjust the "good" mask from 3 to 1. If you had hardcoded `3` in your code, you would need to
