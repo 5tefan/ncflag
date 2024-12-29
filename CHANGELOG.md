@@ -6,6 +6,8 @@
     - Use `from ncflag.io import read_flag_from_netcdf, write_flag_to_netcdf`
     - Replace `FlagWrap.init_from_netcdf(...)` with `read_flag_from_netcdf(...)`
     - Replace `FlagWrap.write_to_netcdf(...)` with `write_flag_to_netcdf(...)`
+- Change CLI options to dash word separators (`-`). `--show_flags` ->
+  `--show-flags` and `--use_time_var` -> `--use-time-var`.
 
 # v0.3.3 - 2024 04 08
 - Bug fix: compatibility with numpy 1.24+ new out-of-bounds int conversion failure 
