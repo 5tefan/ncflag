@@ -24,11 +24,6 @@ jobs:
             mypy=1.11.2
             isort=5.13.2 
             ruff=0.6.9
-      - name: Info
-        shell: bash -l {0}
-        run: |
-          conda info
-          conda list
       - name: black
         shell: bash -l {0}
         run: "python -m black --check ."
