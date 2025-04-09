@@ -1,3 +1,8 @@
+# v0.3.3 - 2024 04 08
+
+- Bug fix: compatibility with numpy 1.24+ new out-of-bounds int conversion failure 
+  https://numpy.org/devdocs/release/1.24.0-notes.html#conversion-of-out-of-bound-python-integers
+
 # v0.3.2 - 2022 10 02
 
 - use long_description_content_type="text/markdown" in setup.py
