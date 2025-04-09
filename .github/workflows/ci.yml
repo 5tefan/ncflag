@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash -leo pipefail {0}
+
+jobs:
+  black:
+    name: black
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: black
+        run: "python -m black --check ."
+  isort:
+    name: isort
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: isort
+        run: "python -m isort -c -v ."
+  lint:
+    name: ruff
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: lint
+        run: "python -m ruff check"
+  mypy:
+    name: mypy
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: mypy
+        run: "python -m mypy ."
+  test:
+    name: unittest
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: test
+        run: "python -m unittest discover -v"
+
+

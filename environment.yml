@@ -6,4 +6,4 @@ dependencies:
   - numpy
   - netCDF4
   - click
-
+  - types-setuptools

@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from setuptools import setup
+
 
 setup(
     name="ncflag",
-    version="0.3.3",
-    description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
+    version="1.0.0",
+    description="Implements an API for bitwise flag vectors given metadata.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
     url="https://github.com/5tefan/ncflag",
@@ -19,8 +22,10 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Topic :: Scientific/Engineering :: Atmospheric Science",
+        "Topic :: Scientific/Engineering :: Hydrology",
+        "Topic :: Scientific/Engineering :: Oceanography",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

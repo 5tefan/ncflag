@@ -1,168 +1,119 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 
 
-class FlagWrap(object):
+class InvalidFlagWrapMetadata(Exception):
+    pass
+
+
+class NoFlagFound(Exception):
+    pass
+
+
+class FlagWrap:
     """
-    A convenience wrapper for flag bit vectors implemented with proper :flag_values, :flag_masks,
-    and :flag_meanings arrays so that flags can be queried and set in code by their meanings instead
-    of using (error prone) hardcoded masks and values.
+    Implements an API for bitwise flag vectors given metadata.
+
+    Metadata that defines a flagging scheme includes:
+    - required flag_meanings
+    - required flag_values
+    - optional flag_masks
+
+    The flag_meanings assign a label to each of the flag_values. The
+    flag_meaning[i] is said to be set when flag_values[i] == flag & flag_masks[i].
+    In other words, a flag meaning is set when the masked flag is equal to the flag value.
+
+    When flag_masks are not provided, no mask is applied.
+
+    See the CF Convetions for more information and examples:
+    https://cfconventions.org/cf-conventions/cf-conventions.html#flags
     """
 
-    def __init__(self, flags, flag_meanings, flag_values, flag_masks=None, name=None):
+    flag_meanings: list[str]
+    flag_values: npt.NDArray[Any]
+    flag_masks: npt.NDArray[Any]
+
+    def __init__(
+        self,
+        flags: npt.NDArray[Any],
+        flag_meanings: list[str] | npt.NDArray[Any],
+        flag_values: list[int] | npt.NDArray[Any],
+        flag_masks: list[int] | npt.NDArray[Any] | None = None,
+    ) -> None:
         """
         Initialize a FlagWrapper for a set of flags with associated metadata.
 
-        :type flags: np.ndarray
-        :param flags: array, flag values indicated
-        :type flag_meanings: list[str] | str
-        :param flag_meanings: list[str] | str, flag_meaning, string name of each designated flag_meaning
-        :type flag_values: np.array
-        :param flag_values: array, value of flag indicating corresponding flag_meaning set
-        :type flag_masks: np.array
-        :param flag_masks: array, optional mask the isolates bits from flag to indicate flag_meaning
+        :param flags: flag values indicated
+        :param flag_meanings: mnemonic labels for each flag value
+        :param flag_values: value that indicates a flag meaning is set
+        :param flag_masks: optional mask values to isolate bits from flag
         """
         if np.ma.is_masked(flags):
-            # support for masked arrays is essential because init_from_netcdf is
-            # somewhat likely to give masked arrays, especially if someone is using
-            # FlagWrap to, eg, build a product.
             self.flags = np.ma.array(flags)
-            # FlagWrap carries around a masked array for a while, but note set_flag
+            # FlagWrap carries around a masked array for a while, but set_flag
             # enthusiastically casts to np.ndarray as soon as nothing is masked.
         else:
             self.flags = np.array(flags)
 
-        if isinstance(flag_meanings, str):
-            self.flag_meanings = flag_meanings.split()  # split on spaces
-        else:
-            assert isinstance(
-                flag_meanings, list
-            ), "expected flag_meanings as either list of flag_meanings, or space separated string of flag_meanings"
-            self.flag_meanings = flag_meanings
+        self.flag_meanings = list(flag_meanings)
 
-        self._flag_values = np.array(flag_values).astype(self.flags.dtype)
-        assert len(self._flag_values) == len(
-            self.flag_meanings
-        ), "flag_meanings vs flag_values length mismatch: found {} and {}".format(
-            len(self.flag_meanings), len(self._flag_values)
-        )
+        self.flag_values = np.array(flag_values).astype(self.flags.dtype)
+        if len(self.flag_values) != len(self.flag_meanings):
+            raise InvalidFlagWrapMetadata(
+                f"flag_meanings vs flag_values length mismatch: {len(self.flag_meanings)} != {len(self.flag_values)}"
+            )
 
         if flag_masks is None:
-            self._flag_masks = np.invert(np.zeros_like(self._flag_values))
+            self.flag_masks = np.invert(np.zeros_like(self.flag_values))
         else:
-            self._flag_masks = np.array(flag_masks).astype(self.flags.dtype)
-            assert len(self._flag_masks) == len(
-                self.flag_meanings
-            ), "flag_meanings vs flag_masks length mismatch: found {} and {}".format(
-                len(self.flag_meanings), len(self._flag_masks)
+            self.flag_masks = np.array(flag_masks).astype(self.flags.dtype)
+        if len(self.flag_masks) != len(self.flag_meanings):
+            raise InvalidFlagWrapMetadata(
+                f"flag_meanings vs flag_masks length mismatch: {len(self.flag_meanings)} != {len(self.flag_masks)}"
             )
 
-        self.name = name
-
-        # This is only for use with init_from_netcdf to hold the reference to nc_var so that
-        # the caller doesn't have to associate the write_to_netcdf call with an nc_var if it's the same as
-        # it was initialized with. Otherwise, self._nc_var should never be used in the FlagWrap!!!
-        self._nc_var = None
-
-    @classmethod
-    def init_from_netcdf(cls, nc_var, shape=None, fill=None):
-        """
-        Initialize a FlagWrap instance from a reference to a NetCDF Variable.
-
-        Default behavior, if no shape or fill are specified, the flags are read from the variable,
-        otherwise, if shape and fill are specified, the flag values will be initialized to that shape with
-        the fill value specified.
-
-        :type nc_var: netCDF4.Variable
-        :param nc_var: reference to NetCDF variable to wrap
-        :type shape: tuple
-        :param shape: If data is to be initialized instead of read from variable, secify shape (dimensions).
-        :type fill: int
-        :param fill: Again, if initializing data, what fill value to use.
-        :return: FlagWrap instance for nc_var
-        """
-        if shape is not None and fill is not None:
-            flags = np.full(shape, fill, dtype=nc_var.dtype)
-            instance = cls(
-                flags,
-                nc_var.flag_meanings,
-                nc_var.flag_values,
-                getattr(nc_var, "flag_masks", None),
-                name=nc_var.name,
-            )
-        else:
-            instance = cls(
-                nc_var[:],
-                nc_var.flag_meanings,
-                nc_var.flag_values,
-                getattr(nc_var, "flag_masks", None),
-                name=nc_var.name,
-            )
-
-        instance._nc_var = nc_var
-
-        return instance
-
-    def write_to_netcdf(self, nc_var=None):
-        """
-        Write a FlagWrap values and metadata to a NetCDF4 Variable.
-
-        :type nc_var: netCDF4.Variable
-        :param nc_var: reference to NetCDF variable to write FlagWrap to.
-        :return: None
-        """
-        if nc_var is None and self._nc_var is not None:
-            nc_var = self._nc_var
-        elif nc_var is None:
-            raise RuntimeError(
-                "write_to_netcdf called w/o target nc_var and appears not to be init from an nc_var."
-            )
-
-        nc_var[:] = self.flags
-        nc_var.flag_meanings = " ".join(self.flag_meanings)
-        nc_var.flag_values = self._flag_values
-        if (
-            not np.all(self._flag_masks == np.invert(np.zeros_like(self._flag_values)))
-            or getattr(nc_var, "flag_masks", None) is not None
-        ):
-            # only write masks if they aren't the default all bits 1 or somethign existed before
-            nc_var.flag_masks = self._flag_masks
-
-    def get_flag(self, flag_meaning, ignore_missing=False):
+    def get_flag(
+        self,
+        flag_meaning: str | list[str],
+        ignore_missing: bool = False,
+    ) -> npt.NDArray[np.bool]:
         """
         Get an array of booleans, same length as flags, at each index indicating if flag_meaning was set.
 
-        :type flag_meaning: str | list[str] | tuple[str]
         :param flag_meaning: flag meaning(s) to be looked up, bitwise_or reduced across first axis if multiple
-        :type ignore_missing: bool
         :param ignore_missing: if False, raises exception for missing flags, if True assumes missing
             flags are not set.
-        :rtype: np.array
         :return: array of booleans where flag_meaning(s) is(are) set
         """
 
-        def get(meaning):
+        def get(meaning: str) -> npt.NDArray[np.bool]:
             """Get the meaning of an individual flag_meaning."""
             if ignore_missing and meaning not in self.flag_meanings:
                 return np.full_like(self.flags, False, dtype=bool)
+
             index = self.flag_meanings.index(meaning)
 
             # start by default assuming there are no flags set.
             # Do not return a masked array! All value should be either True or False.
             # A flag is either set or not set. There is no inbetween.
-            default = np.full(self.flags.shape, False, dtype=bool)
-            if not np.ma.is_masked(self.flags):
-                mask = np.full_like(self.flags, True, dtype=bool)
-            else:
+            default = np.full_like(self.flags, False, dtype=bool)
+            if np.ma.is_masked(self.flags):
                 mask = ~np.ma.getmask(self.flags)
+            else:
+                mask = np.full_like(self.flags, True, dtype=bool)
 
             # only the booleans to True potentially only where flags are not masked in the first place.
             default[mask] = (
-                self.flags[mask] & self._flag_masks[index]
-            ) == self._flag_values[index]
+                self.flags[mask] & self.flag_masks[index]
+            ) == self.flag_values[index]
             return default
 
-        any_set = np.zeros(self.flags.shape, dtype=bool)
-        if isinstance(flag_meaning, (list, tuple)):
+        any_set = np.full(self.flags.shape, False, dtype=bool)
+        if isinstance(flag_meaning, list):
             # if receive a sequence, or them together.
             for each in flag_meaning:
                 any_set |= get(each)
@@ -171,18 +122,15 @@ class FlagWrap(object):
             any_set |= get(flag_meaning)
         return any_set
 
-    def reduce(self, exclude_mask=0, axis=-1):
+    def reduce(self, exclude_mask: int = 0, axis: int = -1) -> FlagWrap:
         """
         Return a new FlagWrap with the current flags reduced along some axis, possibly with
         some bit vectors excluded when anything from exclude_mask is set.
 
         Primary purpose: reduce a multidimensional flag.
 
-        :type exclude_mask: int
         :param exclude_mask: mask indicating (where bits are 1) where to exclude from reduced
-        :type axis: int
         :param axis: what axis to reduce, default -1 (last)
-        :rtype: FlagWrap
         :return: FlagWrap instance wrapping a flag with one fewer dimensions
         """
         if exclude_mask != 0:
@@ -197,53 +145,39 @@ class FlagWrap(object):
         return FlagWrap(
             new_flags,
             self.flag_meanings,
-            self._flag_values,
-            self._flag_masks,
+            self.flag_values,
+            self.flag_masks,
         )
 
-    def get_flag_at_index(self, flag_meaning, i):
+    def get_flag_at_index(self, flag_meaning: str, i: int) -> bool:
         """
         Returns True or False if flag_meaning set at index i?
 
-        :type flag_meaning: str
         :param flag_meaning: flag meaning intended to be set
-        :type i: int
         :param i: index in wrapped flags array to inspect.
-        :rtype: bool
         :return: bool indicating if flag_meaning was set at index i
         """
         index = self.flag_meanings.index(flag_meaning)
         flag_value = self.flags[i]
         if np.ma.is_masked(flag_value):
             return False
-        else:
-            return (flag_value & self._flag_masks[index]) == self._flag_values[index]
+        result = (flag_value & self.flag_masks[index]) == self.flag_values[index]
+        return bool(result)
 
-    def get_flags_set_at_index(self, i, exit_on_good=False):
+    def get_flags_set_at_index(self, i: int) -> list[str]:
         """
         Get a list of the flag_meanings set at a particular index.
 
-        :type i: int
         :param i: the index to examine
-        :type exit_on_good: bool
-        :param exit_on_good: shortcut, return good as soon as good is found
-        :rtype: list[str]
         :return: a list of flags_meanings set at index i
         """
         flags_set = []
-        # if exit_on_good, exit if a good_quality_qf type flag is found
-        # assumptions: good_quality_qf has the substring "good" and flag value can only be 0.
-        if exit_on_good and self.flags[i] == 0:
-            good_meaning = next((f for f in self.flag_meanings if "good" in f), None)
-            if good_meaning is not None:
-                return [good_meaning]
-        # otherwise, go into nominal search through all flags. If set, accumulate.
         for flag_meaning in self.flag_meanings:
             if self.get_flag_at_index(flag_meaning, i):
                 flags_set.append(flag_meaning)
         return flags_set
 
-    def find_flag(self, options):
+    def find_flag(self, options: list[str]) -> npt.NDArray[Any]:
         """
         Treat a list of flag_meanins as options, and return the result of the first one that exists.
 
@@ -255,17 +189,20 @@ class FlagWrap(object):
         History: dealing with misspelled flag_meanings that will eventually be fixed, but now we must think
         about making the code work properly, transparently over time, over the point when the input is fixed.
 
-        :type options: list[str]
         :param options: list of potential flag_meanings to seek
-        :rtype: np.array
         :return: array of booleans indicating where first flag_meaning found is set.
         """
         for flag in options:
             if flag in self.flag_meanings:
                 return self.get_flag(flag)
-        raise ValueError("None of %s found." % options)
+        raise NoFlagFound(f"None of find_flag flags found {options}")
 
-    def set_flag(self, flag_meaning, should_be_set, zero_if_unset=False):
+    def set_flag(
+        self,
+        flag_meaning: str,
+        should_be_set: list[int] | npt.NDArray[Any],
+        zero_if_unset: bool = False,
+    ) -> None:
         """
         Set flag_meaning in all flags where should_be_set is True. zero_if_unset (default True) controls
         whether bits targeted by flag_meaning are cleared (zeroed) even if should_be_set is False there.
@@ -277,11 +214,8 @@ class FlagWrap(object):
         flags where the whole value indicates the flag_meaning, so zeroing the target bits before setting
         on should_be_set will clear any previous flag_meanings or fill values that were set.
 
-        :type flag_meaning: str
         :param flag_meaning: flag meaning intended to be set
-        :type should_be_set: np.array
         :param should_be_set: array of booleans to set
-        :type zero_if_unset: bool
         :param zero_if_unset: explicitly set flag to false when flags indicates false
         :return: None
         """
@@ -297,10 +231,10 @@ class FlagWrap(object):
                 self.flags = np.array(self.flags)
         # zero_if_unset is True => all should_be_set will have targeted field zeroed...
         # otherwise only targets that that will be set.
-        self.flags[bool_flags | zero_if_unset] &= ~self._flag_masks[index]
-        self.flags |= bool_flags * self._flag_values[index]
+        self.flags[bool_flags | zero_if_unset] &= ~self.flag_masks[index]
+        self.flags |= bool_flags * self.flag_values[index]
 
-    def set_flag_at_index(self, flag_meaning, i):
+    def set_flag_at_index(self, flag_meaning: str, i: int) -> None:
         """
         Set a flag at index i.
 
@@ -308,9 +242,7 @@ class FlagWrap(object):
         of the flag_meaning within the bit vec while leaving the rest set or unset as they were.
         Then, OR the flag value onto the target, preserves all other independent flags set.
 
-        :type flag_meaning: str
         :param flag_meaning: flag meaning intended to be set
-        :type i: int
         :param i: index at which to set flag_meaning
         :return: None
         """
@@ -321,11 +253,11 @@ class FlagWrap(object):
             self.flags.mask[i] = False
         else:
             # otherwise, it has been set before,
-            self.flags[i] &= ~self._flag_masks[index]
+            self.flags[i] &= ~self.flag_masks[index]
 
-        self.flags[i] |= self._flag_values[index]
+        self.flags[i] |= self.flag_values[index]
 
-    def get_value_for_meaning(self, flag_meaning):
+    def get_value_for_meaning(self, flag_meaning: str) -> int:
         """
         Get the value that sets flag_meaning.
 
@@ -335,15 +267,15 @@ class FlagWrap(object):
 
         Note: Raises ValueError if flag_meaning is not found.
 
-        :type flag_meaning: str
         :param flag_meaning: string flag name to return value of
-        :rtype: int
         :return: value of flag that sets flag_meaning
         """
+        if not self.is_valid_meaning(flag_meaning):
+            raise NoFlagFound(flag_meaning)
         index = self.flag_meanings.index(flag_meaning)
-        return self._flag_values[index]
+        return int(self.flag_values[index])
 
-    def get_mask_for_meaning(self, flag_meaning):
+    def get_mask_for_meaning(self, flag_meaning: str) -> int:
         """
         Get the the mask that would be used to test if flag_meaning is set.
 
@@ -355,24 +287,19 @@ class FlagWrap(object):
 
         Note: Raises ValueError if flag_meaning not found.
 
-        :type flag_meaning: str
         :param flag_meaning: string flag name to return corrsponding mask of
-        :rtype: int
         :return: flag_mask value corresponding to flag_meaning
         """
+        if not self.is_valid_meaning(flag_meaning):
+            raise NoFlagFound(flag_meaning)
         index = self.flag_meanings.index(flag_meaning)
-        return self._flag_masks[index]
+        return int(self.flag_masks[index])
 
-    def is_valid_meaning(self, flag_meaning):
+    def is_valid_meaning(self, flag_meaning: str) -> bool:
         """
-        Test if a flag_meaning is valid or exists.
+        Determine if the flag_meaning is valid.
 
-        Convenience function to handle common use case of checking if a
-        flag_meaning is valid for the wrapped flag.
-
-        :type flag_meaning: str
-        :param flag_meaning: string flag name to test existence of.
-        :rtype: bool
-        :return: if flag_meaning is a valid meaning for the flag.
+        :param flag_meaning: string flag name to test for existence.
+        :return: whether flag_meaning is valid
         """
         return flag_meaning in self.flag_meanings
