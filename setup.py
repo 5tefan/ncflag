@@ -1,6 +1,5 @@
 from setuptools import setup
 
-
 setup(
     name="ncflag",
     version="0.3.3",
