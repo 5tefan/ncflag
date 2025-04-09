@@ -1,8 +1,10 @@
-from ncflag import FlagWrap
-from unittest import TestCase
-import numpy as np
-import netCDF4 as nc
 import os
+from unittest import TestCase
+
+import netCDF4 as nc
+import numpy as np
+
+from ncflag import FlagWrap
 
 
 def get_dataset():

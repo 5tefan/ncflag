@@ -1,7 +1,9 @@
-import click
 import logging
-import pkg_resources
+
+import click
 import netCDF4 as nc
+import pkg_resources
+
 from .flag_wrapper import FlagWrap
 
 try:
@@ -45,8 +47,8 @@ def show_flags(ctx, param, ncfile):
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
     default="WARNING",
 )
-def cli(ncfile, flag, use_time_var, l):
-    logging.getLogger().setLevel(l)
+def cli(ncfile, flag, use_time_var, log_level):
+    logging.getLogger().setLevel(log_level)
     with nc.Dataset(ncfile) as nc_in:  # type: nc.Dataset
         # initial checks
         v = nc_in.variables[flag]  # type: nc.Variable
