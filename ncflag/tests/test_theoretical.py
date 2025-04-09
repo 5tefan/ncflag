@@ -1,28 +1,32 @@
+from __future__ import annotations
+
 from unittest import TestCase
 
 import numpy as np
 
-from ncflag import FlagWrap
+from ncflag import FlagWrap, InvalidFlagWrapMetadata, NoFlagFound
 
 
 class TestTheoretical(TestCase):
-    def test_teject_misformed_flags(self):
-        with self.assertRaises(AssertionError):
+    def test_teject_misformed_flags(self) -> None:
+        with self.assertRaises(InvalidFlagWrapMetadata):
             # wrong number of flag_values for flag_meanings
-            FlagWrap(np.array([]), "flag1 flag2", [1, 2, 3])
+            FlagWrap(np.array([]), ["flag1", "flag2"], [1, 2, 3])
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(InvalidFlagWrapMetadata):
             # wrong number of flag_masks for flag_meanings
-            FlagWrap(np.array([]), "flag1 flag2", [1, 2], [-1, -1, -1])
+            FlagWrap(np.array([]), ["flag1", "flag2"], [1, 2], [-1, -1, -1])
 
-    def test_exclusive_flag_type(self):
+    def test_exclusive_flag_type(self) -> None:
         """A barrage of tests to make sure everything works properly for flag variables defined
         so that every flag_meaning is mutually exclusive."""
 
         original_flags = np.array([0, 0, 1, 2, 3, 255], dtype=np.ubyte)
 
         f = FlagWrap(
-            original_flags.copy(), "good medium bad extra_bad", np.array([0, 1, 2, 3])
+            original_flags.copy(),
+            ["good", "medium", "bad", "extra_bad"],
+            np.array([0, 1, 2, 3]),
         )
 
         np.testing.assert_array_equal(
@@ -64,10 +68,7 @@ class TestTheoretical(TestCase):
         for i in range(len(f.flags)):
             # exit_on_good option applies here since flags are mutually exclusive
             # result should be the same regardless of exit_on_good
-            self.assertTrue(
-                f.get_flags_set_at_index(i, exit_on_good=True)
-                == f.get_flags_set_at_index(i, exit_on_good=False)
-            )
+            self.assertTrue(f.get_flags_set_at_index(i) == f.get_flags_set_at_index(i))
 
         self.assertTrue(f.get_flag_at_index("good", 0))
         self.assertFalse(f.get_flag_at_index("good", -1))
@@ -115,7 +116,7 @@ class TestTheoretical(TestCase):
 
         # actually, one more thing while we have this FlagWrap instance, check that find_flag works...
         these_dont_exist = ["thegrinch", "lochnessmonster", "dreams"]
-        with self.assertRaises(ValueError):
+        with self.assertRaises(NoFlagFound):
             f.find_flag(these_dont_exist)
         for flag_meaning in f.flag_meanings:
             np.testing.assert_array_equal(
@@ -123,7 +124,7 @@ class TestTheoretical(TestCase):
             )
         # ok, we'll call it good there.
 
-    def test_maskedarray_initial_flags(self):
+    def test_maskedarray_initial_flags(self) -> None:
         """Similar to the previous test, except start with a masked array and fill...
         This will be what it looks like if someone does init_from_netcdf for an unwritten variable
         that actually has shape."""
@@ -169,7 +170,7 @@ class TestTheoretical(TestCase):
         f.set_flag("bad", [0, 0, 1, 0, 0], zero_if_unset=True)
         np.testing.assert_array_equal(f.get_flag("good"), np.array([1, 1, 0, 1, 1]))
 
-    def test_inclusive_flag(self):
+    def test_inclusive_flag(self) -> None:
         # as opposed to an exclusive flag where every flag_meaning is exclusive, in other words, there can only
         # every be one flag meaning, an inclusive flag can have multiple flag_meanings set at once.
 
@@ -196,7 +197,7 @@ class TestTheoretical(TestCase):
 
         f = FlagWrap(
             original_flags.copy(),
-            "good degraded middle left right red blue",
+            ["good", "degraded", "middle", "left", "right", "red", "blue"],
             [0, 1, 6, 2, 4, 8, 16],
             [1, 1, 6, 6, 6, 8, 16],
         )

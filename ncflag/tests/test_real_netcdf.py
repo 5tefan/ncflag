@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import os
 from unittest import TestCase
 
 import netCDF4 as nc
 import numpy as np
 
-from ncflag import FlagWrap
+from ncflag.io import read_flag_from_netcdf
 
 
-def get_dataset():
+def get_dataset() -> nc.Dataset:
     datafile = os.path.join(
         os.path.dirname(__file__), "data/ops_exis-l1b-sfxr_g16_d20180402_v0-0-0.nc"
     )
@@ -15,9 +17,9 @@ def get_dataset():
 
 
 class TestXrs(TestCase):
-    def test_yaw_flip_flag(self):
+    def test_yaw_flip_flag(self) -> None:
         ds = get_dataset()
-        f = FlagWrap.init_from_netcdf(ds.variables["yaw_flip_flag"])
+        f = read_flag_from_netcdf(ds.variables["yaw_flip_flag"])
 
         # the flag value at masked_index is masked, i.e. has no value.
         # below, make sure that's accounted for properly. Should not return
@@ -25,7 +27,7 @@ class TestXrs(TestCase):
         masked_index = 34799
         self.assertEqual(len(f.get_flags_set_at_index(masked_index)), 0)
 
-        # but, for example, the one before it should be set to "upright"
+        # but, for example, the ones before it should be set to "upright"
         first_flags = f.get_flags_set_at_index(0)
         self.assertEqual(first_flags, ["upright"])
 
@@ -34,9 +36,9 @@ class TestXrs(TestCase):
         self.assertFalse(np.ma.is_masked(upright))
         self.assertFalse(upright[masked_index])
 
-    def test_misc_consistency(self):
+    def test_misc_consistency(self) -> None:
         ds = get_dataset()
-        f = FlagWrap.init_from_netcdf(ds.variables["quality_flags"])
+        f = read_flag_from_netcdf(ds.variables["quality_flags"])
 
         # good_quality_qf is first in the list and easy to manually establish...
         # value should be 0...

@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from setuptools import setup
+
 
 setup(
     name="ncflag",
-    version="0.3.3",
-    description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
+    version="1.0.0",
+    description="Implements an API for bitwise flag vectors given metadata.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",
     url="https://github.com/5tefan/ncflag",

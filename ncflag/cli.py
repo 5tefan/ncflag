@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import logging
 
 import click
 import netCDF4 as nc
 import pkg_resources
 
-from .flag_wrapper import FlagWrap
+from .io import read_flag_from_netcdf
+
 
 try:
     version = pkg_resources.require("ncflag")[0].version
@@ -12,7 +15,7 @@ except pkg_resources.DistributionNotFound:
     version = "unknown"
 
 
-def show_flags(ctx, param, ncfile):
+def show_flags(ctx: click.Context, param: str, ncfile: str) -> None:
     if not ncfile or ctx.resilient_parsing:
         return
     valid_flags = []
@@ -31,7 +34,7 @@ def show_flags(ctx, param, ncfile):
 @click.command()
 @click.version_option(version, "-v", "--version")
 @click.option(
-    "--show_flags",
+    "--show-flags",
     callback=show_flags,
     expose_value=False,
     is_eager=True,
@@ -40,37 +43,49 @@ def show_flags(ctx, param, ncfile):
 )
 @click.argument("ncfile", type=click.Path(exists=True, dir_okay=False))
 @click.argument("flag", type=click.STRING)
-@click.option("--use_time_var", type=click.STRING, default=None)
+@click.option("--use-time-var", type=click.STRING, default=None)
 @click.option(
-    "-l",
+    "--log-level",
     help="log level",
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
     default="WARNING",
 )
-def cli(ncfile, flag, use_time_var, log_level):
+def cli(ncfile: str, flag: str, use_time_var: str | None, log_level: str) -> None:
     logging.getLogger().setLevel(log_level)
-    with nc.Dataset(ncfile) as nc_in:  # type: nc.Dataset
+    with nc.Dataset(ncfile) as nc_in:
         # initial checks
-        v = nc_in.variables[flag]  # type: nc.Variable
-        assert hasattr(v, "flag_values"), (
-            "%s is not CF compliant flag, missing flag_values" % flag
-        )
-        assert hasattr(v, "flag_meanings"), (
-            "%s is not CF compliant flag, missing flag_meanings" % flag
-        )
-        assert (
-            len(v.dimensions) == 1
-        ), "multidimensional flags are not supported, see docs and use ipython instead"
-        w = FlagWrap.init_from_netcdf(v)
-        if use_time_var is not None:
-            t = nc_in.variables[use_time_var]  # type: nc.Variable
-            assert (
-                t.dimensions == v.dimensions
-            ), "To print flags by time, time flag must share dimensions"
-            assert hasattr(t, "units"), (
-                "did not find units on time flag %s" % use_time_var
+        v = nc_in.variables[flag]
+
+        missing = []
+        if not hasattr(v, "flag_values"):
+            missing.append("flag_values")
+
+        if not hasattr(v, "flag_meanings"):
+            missing.append("flag_meanings")
+
+        if missing:
+            raise Exception(
+                "not a flag variable: missing attributes",
             )
-            for i, dt in enumerate(nc.num2date(t[:], t.units)):
+
+        if not len(v.dimensions) == 1:
+            raise Exception("multidimensional flags are not supported")
+
+        w = read_flag_from_netcdf(v)
+
+        if use_time_var is not None:
+            t = nc_in.variables[use_time_var]
+
+            if not (t.dimensions == v.dimensions):
+                raise Exception("To print flags by time, time must share dimensions")
+
+            if not hasattr(t, "units"):
+                raise Exception(
+                    "did not find units on time variable",
+                )
+
+            dts = nc.num2date(t[:], t.units)
+            for i, dt in enumerate(dts):  # type: ignore
                 out_time = (
                     dt.isoformat() if dt is not None else "__________________________"
                 )

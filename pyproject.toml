@@ -1,0 +1,19 @@
+
+[tool.isort]
+profile = "black"
+lines_after_imports = 2
+add_imports = "from __future__ import annotations"
+
+[tool.mypy]
+plugins = [
+    "numpy.typing.mypy_plugin"
+]
+strict = true
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
+
