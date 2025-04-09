@@ -1,9 +1,8 @@
 from setuptools import setup
 
-
 setup(
     name="ncflag",
-    version="0.3.2",
+    version="0.3.3",
     description="Utility and library to interface with CF-Compliant NetCDF flag variables.",
     author="Stefan Codrescu",
     author_email="stefan.codrescu@noaa.gov",

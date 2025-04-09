@@ -1,6 +1,8 @@
-from ncflag import FlagWrap
 from unittest import TestCase
+
 import numpy as np
+
+from ncflag import FlagWrap
 
 
 class TestApi(TestCase):

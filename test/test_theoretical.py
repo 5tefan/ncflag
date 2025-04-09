@@ -1,5 +1,7 @@
 from unittest import TestCase
+
 import numpy as np
+
 from ncflag import FlagWrap
 
 
@@ -17,7 +19,7 @@ class TestTheoretical(TestCase):
         """A barrage of tests to make sure everything works properly for flag variables defined
         so that every flag_meaning is mutually exclusive."""
 
-        original_flags = np.array([0, 0, 1, 2, 3, -1], dtype=np.ubyte)
+        original_flags = np.array([0, 0, 1, 2, 3, 255], dtype=np.ubyte)
 
         f = FlagWrap(
             original_flags.copy(), "good medium bad extra_bad", np.array([0, 1, 2, 3])

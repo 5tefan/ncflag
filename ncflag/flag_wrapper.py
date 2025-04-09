@@ -47,7 +47,7 @@ class FlagWrap(object):
         )
 
         if flag_masks is None:
-            self._flag_masks = np.full_like(self._flag_values, -1)
+            self._flag_masks = np.invert(np.zeros_like(self._flag_values))
         else:
             self._flag_masks = np.array(flag_masks).astype(self.flags.dtype)
             assert len(self._flag_masks) == len(
@@ -121,7 +121,7 @@ class FlagWrap(object):
         nc_var.flag_meanings = " ".join(self.flag_meanings)
         nc_var.flag_values = self._flag_values
         if (
-            not np.all(self._flag_masks == np.full_like(self._flag_values, -1))
+            not np.all(self._flag_masks == np.invert(np.zeros_like(self._flag_values)))
             or getattr(nc_var, "flag_masks", None) is not None
         ):
             # only write masks if they aren't the default all bits 1 or somethign existed before
